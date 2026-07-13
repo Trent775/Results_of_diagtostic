@@ -1,202 +1,532 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Системный Аудит Персонала</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
-    <style>
-        :root {
-            --bg-color: #0d0d0d;
-            --card-bg: #1a1a1a;
-            --text-main: #e0e0e0;
-            --text-muted: #777;
-            --accent: #007bed;
-            --error: #ff4757;
-            --border: #333;
-        }
-        body {
-            font-family: 'Segoe UI', Roboto, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            justify-content: center;
-        }
-        .container { max-width: 800px; width: 100%; }
-        #login-screen {
-            margin-top: 15vh;
-            text-align: center;
-            background-color: var(--card-bg);
-            padding: 50px 30px;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
-        h2 { margin-top: 0; letter-spacing: 2px; color: #fff; }
-        input[type="text"] {
-            width: 80%;
-            max-width: 400px;
-            padding: 15px;
-            margin: 25px 0;
-            background: #111;
-            border: 1px solid var(--accent);
-            color: #fff;
-            font-family: monospace;
-            font-size: 16px;
-            text-align: center;
-            outline: none;
-        }
-        button {
-            background-color: var(--accent);
-            color: #fff;
-            border: none;
-            padding: 15px 40px;
-            font-size: 14px;
-            font-weight: bold;
-            cursor: pointer;
-            border-radius: 4px;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-        button:hover { background-color: #005bb5; }
-        .warning {
-            color: var(--text-muted);
-            font-size: 12px;
-            margin-top: 30px;
-            border-top: 1px solid var(--border);
-            padding-top: 20px;
-        }
-        .error-msg { color: var(--error); margin-top: 15px; display: none; font-size: 14px; }
-        #profile-screen { display: none; animation: fadeIn 0.5s ease-in; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        .btn-back {
-            background: transparent;
-            border: 1px solid var(--border);
-            color: var(--text-muted);
-            margin-bottom: 20px;
-            padding: 10px 20px;
-            cursor: pointer;
-        }
-        #render-area {
-            background-color: var(--card-bg);
-            padding: 30px;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            line-height: 1.6;
-            font-size: 16px;
-            white-space: pre-wrap;
-        }
-        .act-header {
-            color: var(--accent);
-            font-weight: bold;
-            font-size: 18px;
-            margin-top: 25px;
-            margin-bottom: 10px;
-            border-bottom: 1px solid var(--border);
-            padding-bottom: 5px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <title>Профиль сотрудника | Аудит</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg: #0b0f15;
+      --surface: #151a22;
+      --surface-light: #1e2530;
+      --border: #2a3340;
+      --text: #dde2ea;
+      --text-secondary: #8b95a5;
+      --accent: #2f80ed;
+      --accent-glow: rgba(47, 128, 237, 0.2);
+      --danger: #eb5757;
+      --success: #27ae60;
+      --warning: #f2c94c;
+      --badge-bg: rgba(47, 128, 237, 0.12);
+      --radius: 14px;
+      --radius-sm: 8px;
+      --transition: 0.2s ease;
+    }
+
+    body {
+      font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      padding: 24px;
+      line-height: 1.5;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 720px;
+      margin-top: 20px;
+    }
+
+    /* --- ЭКРАН ВХОДА --- */
+    .login-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 48px 32px;
+      text-align: center;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+      margin-top: 15vh;
+    }
+
+    .login-card h1 {
+      font-size: 1.8rem;
+      font-weight: 600;
+      letter-spacing: 1px;
+      margin-bottom: 10px;
+      color: #ffffff;
+    }
+
+    .login-card .subtitle {
+      color: var(--text-secondary);
+      margin-bottom: 36px;
+      font-size: 0.95rem;
+    }
+
+    .token-input {
+      width: 100%;
+      padding: 16px 20px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: #fff;
+      font-family: 'JetBrains Mono', 'Fira Code', monospace;
+      font-size: 0.95rem;
+      text-align: center;
+      outline: none;
+      transition: var(--transition);
+      margin-bottom: 24px;
+    }
+
+    .token-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    .btn {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 14px 36px;
+      border-radius: var(--radius-sm);
+      font-size: 0.9rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      cursor: pointer;
+      transition: var(--transition);
+      width: 100%;
+    }
+
+    .btn:hover {
+      background: #1c6dd4;
+      box-shadow: 0 8px 20px rgba(47, 128, 237, 0.3);
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      width: auto;
+      padding: 10px 24px;
+      margin-bottom: 24px;
+      letter-spacing: 1px;
+    }
+
+    .btn-outline:hover {
+      border-color: var(--text-secondary);
+      color: #fff;
+      box-shadow: none;
+    }
+
+    .error-message {
+      color: var(--danger);
+      margin-top: 16px;
+      font-size: 0.9rem;
+      display: none;
+    }
+
+    .footer-note {
+      color: var(--text-secondary);
+      font-size: 0.75rem;
+      margin-top: 32px;
+      border-top: 1px solid var(--border);
+      padding-top: 20px;
+    }
+
+    /* --- ЭКРАН ПРОФИЛЯ --- */
+    .profile-screen {
+      display: none;
+      animation: fadeSlide 0.4s ease;
+    }
+
+    @keyframes fadeSlide {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .profile-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 28px;
+    }
+
+    .profile-header h2 {
+      font-size: 1.6rem;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .employee-name {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 28px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .avatar {
+      width: 48px;
+      height: 48px;
+      background: var(--accent);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: #fff;
+      flex-shrink: 0;
+    }
+
+    .employee-name .info h3 {
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .employee-name .info span {
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+    }
+
+    /* --- КАРТОЧКИ ДАННЫХ --- */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 16px;
+      transition: var(--transition);
+    }
+
+    .card:hover {
+      border-color: #3e4a5b;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .card-header .icon {
+      font-size: 1.2rem;
+    }
+
+    .card-header h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--text-secondary);
+    }
+
+    .data-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.03);
+    }
+
+    .data-row:last-child {
+      border-bottom: none;
+    }
+
+    .data-label {
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+    }
+
+    .data-value {
+      font-weight: 500;
+      font-family: 'JetBrains Mono', 'Fira Code', monospace;
+      background: var(--surface-light);
+      padding: 4px 12px;
+      border-radius: 4px;
+      font-size: 0.9rem;
+      color: #fff;
+      max-width: 60%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      transition: var(--transition);
+      cursor: default;
+    }
+
+    .data-value:hover {
+      background: #2a3544;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+
+    .badge-active {
+      background: rgba(39, 174, 96, 0.15);
+      color: var(--success);
+    }
+
+    .badge-warning {
+      background: rgba(242, 201, 76, 0.15);
+      color: var(--warning);
+    }
+
+    .badge-danger {
+      background: rgba(235, 87, 87, 0.15);
+      color: var(--danger);
+    }
+
+    .audit-log {
+      font-family: 'JetBrains Mono', 'Fira Code', monospace;
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      background: var(--bg);
+      padding: 12px;
+      border-radius: var(--radius-sm);
+      margin-top: 8px;
+      white-space: pre-wrap;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+
+    /* Адаптив */
+    @media (max-width: 500px) {
+      body { padding: 12px; }
+      .login-card { padding: 32px 20px; }
+      .data-row { flex-direction: column; align-items: flex-start; gap: 4px; }
+      .data-value { max-width: 100%; }
+    }
+  </style>
 </head>
 <body>
-
 <div class="container">
-    <div id="login-screen">
-        <h2>СИСТЕМНЫЙ АУДИТ ПЕРСОНАЛА</h2>
-        <p style="color: var(--text-muted);">Введите индивидуальный токен-ключ для расшифровки матрицы</p>
-        <input type="text" id="token-input" placeholder="Вставьте токен из файла CSV">
-        <br>
-        <button onclick="attemptDecryption()">ДЕКОДИРОВАТЬ</button>
-        <div id="error-message" class="error-msg"></div>
-        <p class="warning">ВНИМАНИЕ: Данные предоставляются по протоколу Zero-Knowledge.</p>
-    </div>
+  <!-- ЭКРАН ВХОДА -->
+  <div id="login-screen" class="login-card">
+    <h1>СИСТЕМНЫЙ АУДИТ</h1>
+    <p class="subtitle">Введите индивидуальный токен для расшифровки вашей матрицы доступа</p>
+    <input type="text" id="token-input" class="token-input" placeholder="Имя Фамилия-XXXXXXX" autocomplete="off">
+    <button class="btn" onclick="attemptDecryption()">ДЕКОДИРОВАТЬ</button>
+    <div id="error-message" class="error-message"></div>
+    <p class="footer-note">Zero-Knowledge Protocol · Данные расшифровываются локально</p>
+  </div>
 
-    <div id="profile-screen">
-        <button class="btn-back" onclick="location.reload()">← ЗАВЕРШИТЬ СЕАНС</button>
-        <div id="render-area"></div>
-    </div>
+  <!-- ЭКРАН ПРОФИЛЯ -->
+  <div id="profile-screen" class="profile-screen">
+    <button class="btn btn-outline" onclick="location.reload()">← Завершить сеанс</button>
+    <div id="profile-content"></div>
+  </div>
 </div>
 
 <script>
-    window.onload = function() {
-        fetch('database.json')
-            .then(response => response.json())
-            .then(data => { window.encryptedDB = data; })
-            .catch(error => { showError("Ошибка: файл database.json не найден."); });
+  (function() {
+    // ---------- ЗАГРУЗКА БАЗЫ ----------
+    window.addEventListener('DOMContentLoaded', () => {
+      fetch('database.json')
+        .then(r => r.json())
+        .then(data => { window.encryptedDB = data; })
+        .catch(() => showError('Не удалось загрузить database.json. Проверьте файл.'));
+    });
+
+    window.attemptDecryption = function() {
+      const token = document.getElementById('token-input').value.trim();
+      hideError();
+
+      if (!window.encryptedDB) {
+        showError('База данных ещё загружается. Попробуйте через секунду.');
+        return;
+      }
+
+      const lastDash = token.lastIndexOf('-');
+      if (lastDash === -1) {
+        showError('Неверный формат токена. Убедитесь, что ввели ключ полностью (Имя-код).');
+        return;
+      }
+
+      let userId = token.substring(0, lastDash);
+      let encryptedBase64 = window.encryptedDB[userId];
+
+      // fallback-поиск
+      if (!encryptedBase64) {
+        const alt = userId.includes(' ') ? userId.replace(/ /g, '_') : userId.replace(/_/g, ' ');
+        encryptedBase64 = window.encryptedDB[alt];
+        if (encryptedBase64) userId = alt;
+      }
+
+      if (!encryptedBase64) {
+        showError('Субъект не найден в базе данных. Проверьте имя в токене.');
+        return;
+      }
+
+      try {
+        const tokenBytes = CryptoJS.enc.Utf8.parse(token);
+        const key = CryptoJS.SHA256(tokenBytes);
+        const iv = CryptoJS.MD5(tokenBytes);
+
+        const decrypted = CryptoJS.AES.decrypt(encryptedBase64, key, {
+          iv: iv,
+          mode: CryptoJS.mode.CBC,
+          padding: CryptoJS.pad.Pkcs7
+        });
+
+        const rawText = decrypted.toString(CryptoJS.enc.Utf8);
+        if (!rawText) throw new Error('Пустой результат');
+
+        renderProfile(userId, rawText);
+      } catch (e) {
+        showError('В доступе отказано. Токен не соответствует базе данных.');
+        console.error(e);
+      }
     };
 
     function showError(text) {
-        const errorDiv = document.getElementById('error-message');
-        errorDiv.innerText = text;
-        errorDiv.style.display = 'block';
+      const el = document.getElementById('error-message');
+      el.innerText = text;
+      el.style.display = 'block';
     }
 
-    function attemptDecryption() {
-        let token = document.getElementById('token-input').value.trim();
-        document.getElementById('error-message').style.display = 'none';
-
-        if(!window.encryptedDB) {
-            showError("База данных еще загружается. Подождите.");
-            return;
-        }
-
-        const lastDash = token.lastIndexOf('-');
-        if (lastDash === -1) {
-            showError("Нарушен синтаксис токена. Введите ключ полностью.");
-            return;
-        }
-
-        // Извлекаем имя из токена
-        let userId = token.substring(0, lastDash);
-        
-        // КРИТИЧЕСКИЙ ФИКС: Проверяем базу и по пробелу, и по подчеркиванию!
-        let encryptedBase64 = window.encryptedDB[userId];
-        
-        if (!encryptedBase64) {
-            // Если ввели с подчеркиванием, пробуем найти с пробелом
-            let alternativeId = userId.replace(/_/g, ' ');
-            encryptedBase64 = window.encryptedDB[alternativeId];
-        }
-        if (!encryptedBase64) {
-            // Если ввели с пробелом, пробуем найти с подчеркиванием
-            let alternativeId = userId.replace(/ /g, '_');
-            encryptedBase64 = window.encryptedDB[alternativeId];
-        }
-
-        if (!encryptedBase64) {
-            showError("Субъект не найден в базе данных.");
-            return;
-        }
-
-        try {
-            // Переводим введенный токен в байты для криптографии
-            const tokenBytes = CryptoJS.enc.Utf8.parse(token);
-            const key = CryptoJS.SHA256(tokenBytes);
-            const iv = CryptoJS.MD5(tokenBytes);
-
-            const decrypted = CryptoJS.AES.decrypt(encryptedBase64, key, {
-                iv: iv,
-                mode: CryptoJS.mode.CBC,
-                padding: CryptoJS.pad.Pkcs7
-            });
-            
-            const rawText = decrypted.toString(CryptoJS.enc.Utf8);
-            if (!rawText) throw new Error();
-
-            renderProfile(rawText);
-        } catch (e) {
-            showError("В доступе отказано. Ключ не подходит к замку этой базы.");
-        }
+    function hideError() {
+      document.getElementById('error-message').style.display = 'none';
     }
 
-    function renderProfile(text) {
-        let formattedText = text.replace(/▍(.*)/g, '<div class="act-header">▍ $1</div>');
-        document.getElementById('login-screen').style.display = 'none';
-        document.getElementById('profile-screen').style.display = 'block';
-        document.getElementById('render-area').innerHTML = formattedText;
+    // ---------- ПАРСИНГ И РЕНДЕР ----------
+    function renderProfile(userId, rawText) {
+      const parsed = parseProfileData(rawText);
+
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('profile-screen').style.display = 'block';
+
+      const container = document.getElementById('profile-content');
+      container.innerHTML = buildProfileHTML(userId, parsed);
     }
+
+    function parseProfileData(raw) {
+      const sections = {};
+      const lines = raw.split('\n');
+      let currentSection = 'Основная информация';
+
+      for (const line of lines) {
+        const cleanLine = line.trim();
+        if (!cleanLine) continue;
+
+        // Заголовок секции
+        if (cleanLine.startsWith('▍')) {
+          currentSection = cleanLine.replace('▍', '').trim();
+          if (!sections[currentSection]) sections[currentSection] = [];
+          continue;
+        }
+
+        if (!sections[currentSection]) sections[currentSection] = [];
+
+        // Парсинг ключ-значение (поддержка разных разделителей)
+        const match = cleanLine.match(/^(.+?)[:：]\s*(.+)$/);
+        if (match) {
+          sections[currentSection].push({ label: match[1].trim(), value: match[2].trim() });
+        } else {
+          // Строки без явного ключа (например, заметки)
+          sections[currentSection].push({ label: '', value: cleanLine });
+        }
+      }
+
+      return sections;
+    }
+
+    function buildProfileHTML(userId, sections) {
+      // Аватар — первые буквы имени
+      const initials = userId.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+
+      let html = `
+        <div class="employee-name">
+          <div class="avatar">${initials}</div>
+          <div class="info">
+            <h3>${escapeHTML(userId)}</h3>
+            <span>Индивидуальная матрица доступа</span>
+          </div>
+        </div>
+      `;
+
+      const icons = {
+        'учетные данные': '🔐',
+        'доступы': '🛡️',
+        'контакты': '📇',
+        'аудит': '📋',
+        'система': '⚙️',
+        'основная информация': '👤',
+        'логи': '📜'
+      };
+
+      for (const [sectionName, items] of Object.entries(sections)) {
+        if (!items.length) continue;
+
+        const icon = icons[sectionName.toLowerCase()] || '📌';
+
+        html += `<div class="card">`;
+        html += `<div class="card-header"><span class="icon">${icon}</span><h3>${escapeHTML(sectionName)}</h3></div>`;
+
+        for (const item of items) {
+          if (!item.label) {
+            // Свободный текст (например, примечание)
+            html += `<div class="audit-log">${escapeHTML(item.value)}</div>`;
+            continue;
+          }
+
+          let valueHTML = escapeHTML(item.value);
+
+          // Авто-определение бейджей для статусов
+          if (/активен|active|включен|разрешено/i.test(item.value)) {
+            valueHTML = `<span class="badge badge-active">${valueHTML}</span>`;
+          } else if (/заблокирован|отключен|истекает|expired/i.test(item.value)) {
+            valueHTML = `<span class="badge badge-danger">${valueHTML}</span>`;
+          } else if (/ожидает|pending|ограничен/i.test(item.value)) {
+            valueHTML = `<span class="badge badge-warning">${valueHTML}</span>`;
+          }
+
+          html += `
+            <div class="data-row">
+              <span class="data-label">${escapeHTML(item.label)}</span>
+              <span class="data-value">${valueHTML}</span>
+            </div>
+          `;
+        }
+
+        html += `</div>`;
+      }
+
+      return html;
+    }
+
+    function escapeHTML(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+  })();
 </script>
-
 </body>
 </html>
