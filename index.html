@@ -6,7 +6,7 @@
     <title>Аналитическая Матрица | Premium Dashboard</title>
     <!-- Подключение криптографического ядра -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
-    <!-- Шрифты для премиального отображения -->
+    <!-- Шрифты -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -20,7 +20,6 @@
             --text-secondary: #94a3b8;
             --text-highlight: #e2e8f0;
             
-            /* Неоновая палитра */
             --neon-blue: #38bdf8;
             --neon-blue-glow: rgba(56, 189, 248, 0.3);
             --neon-red: #f43f5e;
@@ -158,16 +157,14 @@
             padding: 10px 20px;
             border-radius: 8px;
             font-size: 13px;
-            box-shadow: none;
-            text-transform: none;
-            letter-spacing: normal;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
         }
         
         .btn-back:hover {
             background: rgba(255,255,255,0.05);
             color: #fff;
-            transform: none;
-            box-shadow: none;
         }
 
         /* СЕТКА ДАШБОРДА */
@@ -184,22 +181,8 @@
             border-top: 1px solid rgba(255,255,255,0.15);
         }
 
-        .header-card h1 { 
-            margin: 0; 
-            font-size: 32px; 
-            font-weight: 800;
-            letter-spacing: -0.5px;
-            color: #fff; 
-        }
-        
-        .header-card .role { 
-            color: var(--neon-blue); 
-            font-size: 15px; 
-            font-weight: 600; 
-            margin-top: 8px; 
-            text-transform: uppercase; 
-            letter-spacing: 2px;
-        }
+        .header-card h1 { margin: 0; font-size: 32px; font-weight: 800; letter-spacing: -0.5px; color: #fff; }
+        .header-card .role { color: var(--neon-blue); font-size: 15px; font-weight: 600; margin-top: 8px; text-transform: uppercase; letter-spacing: 2px;}
 
         .grid-main {
             display: grid;
@@ -244,21 +227,58 @@
             box-shadow: 0 0 10px var(--neon-blue-glow);
         }
 
-        .text-block p {
-            background: rgba(0,0,0,0.2);
-            padding: 18px 24px;
-            border-radius: 12px;
-            margin-bottom: 16px;
+        /* ----- СМАРТ-ФОРМАТИРОВАНИЕ ТЕКСТА ----- */
+        .smart-subheading {
+            font-size: 14px;
+            font-weight: 700;
+            margin: 28px 0 12px 0;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+        }
+        .smart-subheading:first-child { margin-top: 0; }
+        .smart-subheading .icon { margin-right: 8px; font-size: 16px; }
+        
+        .smart-thesis {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 12px;
+            background: rgba(0,0,0,0.25);
+            padding: 14px 18px;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.03);
+            transition: background 0.3s;
+        }
+        .smart-thesis:hover { background: rgba(255,255,255,0.04); }
+        .smart-thesis .bullet {
+            margin-right: 12px;
+            font-size: 14px;
+            line-height: 1.6;
+            margin-top: 1px;
+        }
+        .smart-thesis .thesis-text {
             color: var(--text-highlight);
             font-size: 15px;
-            border-left: 3px solid rgba(255,255,255,0.1);
+            line-height: 1.6;
         }
-        .text-block p:last-child { margin-bottom: 0; }
+        
+        .smart-quote {
+            background: rgba(0,0,0,0.3);
+            border-left: 3px solid transparent;
+            padding: 18px 20px;
+            font-style: italic;
+            color: #fff;
+            border-radius: 0 10px 10px 0;
+            margin: 20px 0;
+            font-weight: 500;
+            font-size: 15px;
+        }
 
         /* ИНТЕРАКТИВНЫЕ ГРАФИКИ */
-        .metric-row {
-            margin-bottom: 25px;
-        }
+        .metric-row { margin-bottom: 25px; }
         .metric-row:last-child { margin-bottom: 0; }
 
         .metric-header {
@@ -268,18 +288,8 @@
             margin-bottom: 10px;
         }
 
-        .metric-label { 
-            font-size: 14px; 
-            font-weight: 600; 
-            color: #fff;
-            letter-spacing: 0.5px;
-        }
-        
-        .metric-value { 
-            font-size: 20px; 
-            font-weight: 800; 
-            font-family: monospace;
-        }
+        .metric-label { font-size: 14px; font-weight: 600; color: #fff; letter-spacing: 0.5px; }
+        .metric-value { font-size: 20px; font-weight: 800; font-family: monospace; }
 
         .progress-track {
             background-color: rgba(0,0,0,0.5);
@@ -294,13 +304,12 @@
         .progress-fill {
             height: 100%;
             border-radius: 10px;
-            width: 0; /* Стартует с нуля для анимации */
+            width: 0;
             transition: width 1.5s cubic-bezier(0.22, 1, 0.36, 1);
             position: relative;
             overflow: hidden;
         }
 
-        /* Эффект блика на графике */
         .progress-fill::after {
             content: '';
             position: absolute;
@@ -309,17 +318,9 @@
             animation: shimmer 2s infinite;
         }
 
-        @keyframes shimmer {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(200%); }
-        }
+        @keyframes shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(200%); } }
 
-        .metric-desc {
-            font-size: 13px;
-            color: var(--text-secondary);
-            margin-top: 10px;
-            line-height: 1.5;
-        }
+        .metric-desc { font-size: 13px; color: var(--text-secondary); margin-top: 10px; line-height: 1.5; }
 
         /* КРИТИЧЕСКИЙ РИСК (АКТ 2) */
         .risk-card {
@@ -327,21 +328,8 @@
             background: linear-gradient(145deg, rgba(244, 63, 94, 0.08) 0%, var(--bg-glass) 100%);
             margin-bottom: 25px;
         }
-        .risk-card .card-title::before { 
-            background-color: var(--neon-red); 
-            box-shadow: 0 0 10px var(--neon-red-glow);
-        }
+        .risk-card .card-title::before { background-color: var(--neon-red); box-shadow: 0 0 10px var(--neon-red-glow); }
         .risk-card .card-title { color: var(--neon-red); }
-        
-        .risk-text p {
-            background: transparent;
-            border-left: none;
-            padding: 0;
-            color: #fda4af;
-            font-weight: 400;
-            font-size: 16px;
-            margin-bottom: 16px;
-        }
 
         /* ПРОТОКОЛ ВЗЛОМА (АКТ 3) */
         .protocol-card {
@@ -349,26 +337,11 @@
             background: linear-gradient(145deg, rgba(16, 185, 129, 0.08) 0%, var(--bg-glass) 100%);
             margin-bottom: 25px;
         }
-        .protocol-card .card-title::before { 
-            background-color: var(--neon-green); 
-            box-shadow: 0 0 10px var(--neon-green-glow);
-        }
+        .protocol-card .card-title::before { background-color: var(--neon-green); box-shadow: 0 0 10px var(--neon-green-glow); }
         .protocol-card .card-title { color: var(--neon-green); }
-        .protocol-text p {
-            background: transparent;
-            border-left: none;
-            padding: 0;
-            color: #6ee7b7;
-            font-weight: 500;
-            font-size: 15px;
-        }
 
         /* ТЕХНИЧЕСКИЙ ДОПУСК */
-        .tech-box {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-        }
+        .tech-box { display: flex; flex-wrap: wrap; gap: 12px; }
         .tech-badge {
             background: rgba(0,0,0,0.3);
             padding: 10px 16px;
@@ -384,7 +357,6 @@
 
 <div class="container">
     
-    <!-- ШЛЮЗ -->
     <div id="login-screen">
         <h2>СИСТЕМНЫЙ АУДИТ</h2>
         <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 30px;">Модуль расшифровки аналитической матрицы</p>
@@ -393,9 +365,8 @@
         <div id="error-message" class="error-msg"></div>
     </div>
 
-    <!-- ДАШБОРД -->
     <div id="profile-screen">
-        <button class="btn-back" onclick="location.reload()">Закрыть профиль</button>
+        <button class="btn-back" onclick="location.reload()">← Закрыть профиль</button>
         
         <div class="header-card">
             <h1 id="user-name">Загрузка...</h1>
@@ -403,32 +374,27 @@
         </div>
 
         <div class="grid-main">
-            <!-- Блок 1: Легенда -->
             <div class="card">
                 <div class="card-title">Рабочая модель / Легенда</div>
-                <div id="block-legend" class="text-block"></div>
+                <div id="block-legend"></div>
             </div>
 
-            <!-- Блок 2: Интерактивные Метрики -->
             <div class="card">
                 <div class="card-title">Карта внутреннего натяжения</div>
                 <div id="block-metrics"></div>
             </div>
         </div>
 
-        <!-- Блок 3: Критический парадокс (АКТ 2) -->
         <div class="card risk-card" id="card-paradox">
             <div class="card-title">Критический узел / Скрытые риски</div>
-            <div id="block-paradox" class="text-block risk-text"></div>
+            <div id="block-paradox"></div>
         </div>
 
-        <!-- Блок 4: Протокол взлома (АКТ 3) -->
         <div class="card protocol-card" id="card-protocol" style="display: none;">
             <div class="card-title">Протокол деконструкции системы</div>
-            <div id="block-protocol" class="text-block protocol-text"></div>
+            <div id="block-protocol"></div>
         </div>
 
-        <!-- Блок 5: Технический допуск -->
         <div class="card" style="padding: 25px;">
             <div class="card-title" style="margin-bottom: 15px;">Верификация данных</div>
             <div id="block-tech" class="tech-box"></div>
@@ -496,22 +462,45 @@
         }
     }
 
-    function formatTextToParagraphs(textBlock) {
-        return textBlock.split('\n')
-            .map(line => line.trim())
-            .filter(line => line.length > 0)
-            .map(line => `<p>${line}</p>`)
-            .join('');
+    // УМНЫЙ ФОРМАТТЕР: Превращает скучный текст в элементы дашборда
+    function smartFormat(text, accentColor, glowColor) {
+        // Убираем \r, разбиваем по \n, фильтруем пустые строки (решает проблему с дырами)
+        let lines = text.replace(/\r/g, '').split('\n').map(l => l.trim()).filter(l => l.length > 0);
+        let html = '';
+        
+        lines.forEach(line => {
+            // Маркдаун для жирного шрифта
+            line = line.replace(/\*\*(.*?)\*\*/g, '<strong style="color: #fff; font-weight: 800;">$1</strong>');
+            
+            if (line.endsWith(':')) {
+                // Если строка оканчивается на двоеточие — это ЗАГОЛОВОК
+                html += `<div class="smart-subheading" style="color: ${accentColor};">
+                            <span class="icon" style="text-shadow: 0 0 10px ${glowColor};">✦</span> 
+                            ${line}
+                         </div>`;
+            } 
+            else if (line.startsWith('«') || (line.startsWith('"') && line.endsWith('"'))) {
+                // Если строка в кавычках — это ЦИТАТА / ИНСАЙТ
+                html += `<div class="smart-quote" style="border-left-color: ${accentColor};">
+                            ${line}
+                         </div>`;
+            } 
+            else {
+                // Все остальные строки — это ТЕЗИСЫ (упаковываем в карточки со стрелочкой)
+                html += `<div class="smart-thesis">
+                            <span class="bullet" style="color: ${accentColor}; text-shadow: 0 0 8px ${glowColor};">⯈</span>
+                            <span class="thesis-text">${line}</span>
+                         </div>`;
+            }
+        });
+        
+        return html;
     }
 
     function buildPremiumDashboard(fullId, rawText) {
-        // Убиваем возможные проблемы с переносами каретки Windows
         let text = rawText.replace(/\r\n/g, '\n');
-        
-        // 1. ЖЕЛЕЗОБЕТОННЫЙ ПАРСИНГ: режем весь текст по символу ▍
         let sections = text.split('▍');
         
-        // Первый кусок всегда содержит имя и должность
         let headerLines = sections[0].split('\n').map(l => l.trim()).filter(l => l.length > 0);
         let name = "Неизвестно";
         let role = "Специалист";
@@ -522,10 +511,8 @@
         document.getElementById('user-name').innerText = name;
         document.getElementById('user-role').innerText = role;
 
-        // Переменные для блоков
         let techText = "", act1Text = "", mapText = "", act2Text = "", act3Text = "";
 
-        // Разбираем отрезанные куски по заголовкам
         for (let i = 1; i < sections.length; i++) {
             let sec = sections[i].trim();
             if (sec.startsWith('ТЕХНИЧЕСКИЙ ДОПУСК')) {
@@ -541,30 +528,26 @@
             }
         }
 
-        // РЕНДЕР: Технический допуск
         if (techText) {
             let badges = techText.split('\n').filter(l=>l.trim()!=='').map(l => `<div class="tech-badge">${l}</div>`).join('');
             document.getElementById('block-tech').innerHTML = badges;
         }
 
-        // РЕНДЕР: Акт 1 (Легенда)
-        if (act1Text) document.getElementById('block-legend').innerHTML = formatTextToParagraphs(act1Text);
+        // Применяем Smart Format к Акту 1 (Цвет: Синий)
+        if (act1Text) document.getElementById('block-legend').innerHTML = smartFormat(act1Text, 'var(--neon-blue)', 'var(--neon-blue-glow)');
 
-        // РЕНДЕР: Графики натяжения
         let metricsHtml = "";
-        let animDelays = []; // Для анимации
+        let animDelays = [];
         
         if (mapText) {
             let lines = mapText.split('\n');
             lines.forEach((line, index) => {
-                // Идеальная регулярка: ищет текст в скобках [Название], любые символы, процент, и текст в круглых скобках
                 let m = line.match(/\[(.*?)\][^\d]*(\d+)\s*%[^\(]*\((.*?)\)/);
                 if (m) {
                     let label = m[1].trim();
                     let percentVal = parseInt(m[2]);
                     let desc = m[3].trim();
                     
-                    // Цветовая логика дашборда
                     let color = "var(--neon-blue)";
                     let glow = "var(--neon-blue-glow)";
                     
@@ -579,7 +562,6 @@
                                 <div class="metric-value" style="color: ${color}; text-shadow: 0 0 10px ${glow};">${percentVal}%</div>
                             </div>
                             <div class="progress-track">
-                                <!-- ID добавлен для запуска анимации после рендера -->
                                 <div class="progress-fill" id="bar-${index}" style="background-color: ${color}; box-shadow: 0 0 10px ${glow};"></div>
                             </div>
                             <div class="metric-desc">${desc}</div>
@@ -591,22 +573,20 @@
         }
         document.getElementById('block-metrics').innerHTML = metricsHtml || "<p style='color: var(--text-secondary)'>Данные метрик отсутствуют.</p>";
 
-        // РЕНДЕР: Акт 2 (Риски)
-        if (act2Text) document.getElementById('block-paradox').innerHTML = formatTextToParagraphs(act2Text);
+        // Применяем Smart Format к Акту 2 (Цвет: Красный)
+        if (act2Text) document.getElementById('block-paradox').innerHTML = smartFormat(act2Text, 'var(--neon-red)', 'var(--neon-red-glow)');
 
-        // РЕНДЕР: Акт 3 (Протокол)
+        // Применяем Smart Format к Акту 3 (Цвет: Зеленый)
         if (act3Text) {
-            document.getElementById('block-protocol').innerHTML = formatTextToParagraphs(act3Text);
+            document.getElementById('block-protocol').innerHTML = smartFormat(act3Text, 'var(--neon-green)', 'var(--neon-green-glow)');
             document.getElementById('card-protocol').style.display = 'block';
         } else {
             document.getElementById('card-protocol').style.display = 'none';
         }
 
-        // Переключение экранов и запуск анимации
         document.getElementById('login-screen').style.display = 'none';
         document.getElementById('profile-screen').style.display = 'block';
 
-        // Запускаем графики с небольшой задержкой для WOW-эффекта
         setTimeout(() => {
             animDelays.forEach(item => {
                 let el = document.getElementById(item.id);
