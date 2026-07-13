@@ -32,7 +32,7 @@
             width: 100%;
         }
 
-        /* ЭКРАН 1: ШЛЮЗ */
+        /* ЭКРАН 1: ШЛЮЗ АВТОРИЗАЦИИ */
         #login-screen {
             margin-top: 15vh;
             text-align: center;
@@ -100,7 +100,7 @@
             font-size: 14px;
         }
 
-        /* ЭКРАН 2: ПРОФИЛЬ */
+        /* ЭКРАН 2: ОТОБРАЖЕНИЕ ПРОФИЛЯ */
         #profile-screen {
             display: none;
             animation: fadeIn 0.5s ease-in;
@@ -127,10 +127,9 @@
             border: 1px solid var(--border);
             line-height: 1.6;
             font-size: 16px;
-            white-space: pre-wrap; /* Сохраняет абзацы и переносы строк */
+            white-space: pre-wrap;
         }
 
-        /* Выделение маркеров системы */
         .act-header {
             color: var(--accent);
             font-weight: bold;
@@ -146,18 +145,18 @@
 
 <div class="container">
     
-    <!-- ЭКРАН 1: АВТОРИЗАЦИЯ -->
+    <!-- ЭКРАН 1 -->
     <div id="login-screen">
         <h2>СИСТЕМНЫЙ АУДИТ ПЕРСОНАЛА</h2>
         <p style="color: var(--text-muted);">Введите индивидуальный токен-ключ для расшифровки матрицы</p>
         <input type="text" id="token-input" placeholder="Формат: Фамилия_И_Должность-XyZ123">
         <br>
         <button onclick="attemptDecryption()">ДЕКОДИРОВАТЬ</button>
-        <div id="error-message" class="error-msg">Ошибка: Токен не распознан или поврежден.</div>
+        <div id="error-message" class="error-msg">Ошибка: База данных не подключена.</div>
         <p class="warning">ВНИМАНИЕ: Данные предоставляются по протоколу Zero-Knowledge. <br>Передача токена третьим лицам является нарушением информационной безопасности.</p>
     </div>
 
-    <!-- ЭКРАН 2: РЕНДЕР ПРОФИЛЯ -->
+    <!-- ЭКРАН 2 -->
     <div id="profile-screen">
         <button class="btn-back" onclick="location.reload()">← ЗАВЕРШИТЬ СЕАНС</button>
         <div id="render-area"></div>
@@ -166,15 +165,14 @@
 </div>
 
 <script>
-    // 1. Асинхронная загрузка зашифрованной БД при открытии страницы
+    // Автоматическая загрузка зашифрованной базы при старте страницы
     window.onload = function() {
         fetch('database.json')
             .then(response => response.json())
             .then(data => { window.encryptedDB = data; })
             .catch(error => {
                 console.error("Ошибка загрузки базы:", error);
-                document.getElementById('error-message').innerText = "Ошибка соединения с матрицей данных.";
-                document.getElementById('error-message').style.display = 'block';
+                showError("Ошибка соединения: файл database.json не найден в репозитории.");
             });
     };
 
@@ -193,10 +191,9 @@
             return;
         }
 
-        // Парсинг токена. Формат: User_ID-Suffix
         const lastDash = token.lastIndexOf('-');
         if (lastDash === -1) {
-            showError("Нарушен синтаксис токена.");
+            showError("Нарушен синтаксис токена. Введите ключ полностью.");
             return;
         }
 
@@ -204,17 +201,17 @@
         const encryptedBase64 = window.encryptedDB[userId];
 
         if (!encryptedBase64) {
-            showError("Субъект не найден в системе. Проверьте правильность ввода.");
+            showError("Субъект не найден. Проверьте правильность ввода имени.");
             return;
         }
 
-        // 2. Криптографическая расшифровка (алгоритм идентичен Python)
         try {
-            // Восстанавливаем ключи из токена
-            const key = CryptoJS.SHA256(token);
-            const iv = CryptoJS.MD5(token);
+            // ФИКС КИРИЛЛИЦЫ: Переводим русский текст токена в UTF-8 байты перед хэшированием
+            const tokenBytes = CryptoJS.enc.Utf8.parse(token);
+            
+            const key = CryptoJS.SHA256(tokenBytes);
+            const iv = CryptoJS.MD5(tokenBytes);
 
-            // Расшифровываем
             const decrypted = CryptoJS.AES.decrypt(encryptedBase64, key, {
                 iv: iv,
                 mode: CryptoJS.mode.CBC,
@@ -223,18 +220,16 @@
             
             const rawText = decrypted.toString(CryptoJS.enc.Utf8);
             
-            if (!rawText) throw new Error("Bad key");
+            if (!rawText) throw new Error("Неверный ключ");
 
             renderProfile(rawText);
         } catch (e) {
-            showError("В доступе отказано. Ключ дешифровки невалиден.");
+            showError("В доступе отказано. Ошибка дешифрования. Токен невалиден.");
         }
     }
 
     function renderProfile(text) {
-        // Простейшее визуальное форматирование (окрашиваем заголовки Актов)
         let formattedText = text.replace(/▍(.*)/g, '<div class="act-header">▍ $1</div>');
-        
         document.getElementById('login-screen').style.display = 'none';
         document.getElementById('profile-screen').style.display = 'block';
         document.getElementById('render-area').innerHTML = formattedText;
