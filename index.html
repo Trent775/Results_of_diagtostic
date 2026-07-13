@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Аналитическая Матрица | Premium Dashboard</title>
-    <!-- Подключение криптографического ядра -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
-    <!-- Шрифты -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -167,7 +165,6 @@
             color: #fff;
         }
 
-        /* СЕТКА ДАШБОРДА */
         .header-card {
             background: var(--bg-glass);
             backdrop-filter: blur(16px);
@@ -210,7 +207,7 @@
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 1.5px;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
             display: flex;
             align-items: center;
             color: var(--text-secondary);
@@ -227,52 +224,54 @@
             box-shadow: 0 0 10px var(--neon-blue-glow);
         }
 
-        /* ----- СМАРТ-ФОРМАТИРОВАНИЕ ТЕКСТА ----- */
+        /* ----- НОВАЯ АРХИТЕКТУРА ТЕКСТА ----- */
+        
+        /* Уровень 2: Подзаголовки-разделители */
         .smart-subheading {
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 700;
-            margin: 28px 0 12px 0;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin: 35px 0 12px 0;
             padding-bottom: 8px;
             border-bottom: 1px solid rgba(255,255,255,0.05);
-            text-transform: uppercase;
-            letter-spacing: 1px;
             display: flex;
             align-items: center;
         }
         .smart-subheading:first-child { margin-top: 0; }
-        .smart-subheading .icon { margin-right: 8px; font-size: 16px; }
-        
-        .smart-thesis {
-            display: flex;
-            align-items: flex-start;
+        .smart-subheading .icon { margin-right: 10px; font-size: 14px; opacity: 0.8; }
+
+        /* Уровень 3: Контентные плашки */
+        .content-block {
+            background: rgba(0, 0, 0, 0.25);
+            padding: 18px 22px;
+            border-radius: 12px;
             margin-bottom: 12px;
-            background: rgba(0,0,0,0.25);
-            padding: 14px 18px;
-            border-radius: 10px;
-            border: 1px solid rgba(255,255,255,0.03);
-            transition: background 0.3s;
-        }
-        .smart-thesis:hover { background: rgba(255,255,255,0.04); }
-        .smart-thesis .bullet {
-            margin-right: 12px;
-            font-size: 14px;
-            line-height: 1.6;
-            margin-top: 1px;
-        }
-        .smart-thesis .thesis-text {
             color: var(--text-highlight);
             font-size: 15px;
             line-height: 1.6;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            transition: transform 0.2s ease, background 0.2s ease;
         }
-        
-        .smart-quote {
-            background: rgba(0,0,0,0.3);
-            border-left: 3px solid transparent;
-            padding: 18px 20px;
-            font-style: italic;
+        .content-block:hover {
+            background: rgba(255, 255, 255, 0.04);
+            transform: translateX(4px);
+        }
+        .content-block strong {
             color: #fff;
-            border-radius: 0 10px 10px 0;
-            margin: 20px 0;
+            font-weight: 600;
+            margin-right: 6px;
+        }
+
+        /* Уровень 4: Цитаты */
+        .quote-block {
+            background: rgba(0, 0, 0, 0.3);
+            border-left: 3px solid transparent;
+            padding: 20px 24px;
+            font-style: italic;
+            color: var(--text-main);
+            border-radius: 0 12px 12px 0;
+            margin: 24px 0;
             font-weight: 500;
             font-size: 15px;
         }
@@ -462,9 +461,8 @@
         }
     }
 
-    // УМНЫЙ ФОРМАТТЕР: Превращает скучный текст в элементы дашборда
+    // НОВЫЙ ИНТЕЛЛЕКТУАЛЬНЫЙ ФОРМАТТЕР
     function smartFormat(text, accentColor, glowColor) {
-        // Убираем \r, разбиваем по \n, фильтруем пустые строки (решает проблему с дырами)
         let lines = text.replace(/\r/g, '').split('\n').map(l => l.trim()).filter(l => l.length > 0);
         let html = '';
         
@@ -472,25 +470,33 @@
             // Маркдаун для жирного шрифта
             line = line.replace(/\*\*(.*?)\*\*/g, '<strong style="color: #fff; font-weight: 800;">$1</strong>');
             
-            if (line.endsWith(':')) {
-                // Если строка оканчивается на двоеточие — это ЗАГОЛОВОК
+            // Если строка кончается на двоеточие — это ПОДЗАГОЛОВОК (разделитель)
+            if (/:\s*$/.test(line)) {
                 html += `<div class="smart-subheading" style="color: ${accentColor};">
-                            <span class="icon" style="text-shadow: 0 0 10px ${glowColor};">✦</span> 
+                            <span class="icon" style="text-shadow: 0 0 10px ${glowColor};">▰</span> 
                             ${line}
                          </div>`;
             } 
+            // Если строка в кавычках — это ЦИТАТА
             else if (line.startsWith('«') || (line.startsWith('"') && line.endsWith('"'))) {
-                // Если строка в кавычках — это ЦИТАТА / ИНСАЙТ
-                html += `<div class="smart-quote" style="border-left-color: ${accentColor};">
+                html += `<div class="quote-block" style="border-left-color: ${accentColor};">
                             ${line}
                          </div>`;
             } 
+            // Обычный абзац. Проверяем, есть ли двоеточие в середине (Параметр: Значение)
             else {
-                // Все остальные строки — это ТЕЗИСЫ (упаковываем в карточки со стрелочкой)
-                html += `<div class="smart-thesis">
-                            <span class="bullet" style="color: ${accentColor}; text-shadow: 0 0 8px ${glowColor};">⯈</span>
-                            <span class="thesis-text">${line}</span>
-                         </div>`;
+                let colonIndex = line.indexOf(':');
+                if (colonIndex > 0 && colonIndex < 80 && !line.match(/:\/\//)) { 
+                    // Если есть двоеточие недалеко от начала, делаем левую часть жирной
+                    let key = line.substring(0, colonIndex + 1);
+                    let val = line.substring(colonIndex + 1);
+                    html += `<div class="content-block">
+                                <strong style="color: ${accentColor};">${key}</strong>${val}
+                             </div>`;
+                } else {
+                    // Простая плашка
+                    html += `<div class="content-block">${line}</div>`;
+                }
             }
         });
         
