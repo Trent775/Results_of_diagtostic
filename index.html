@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Системный Аудит Персонала</title>
+    <!-- Подключение криптографического ядра -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <style>
+        :root {
+            --bg-color: #0d0d0d;
+            --card-bg: #1a1a1a;
+            --text-main: #e0e0e0;
+            --text-muted: #777;
+            --accent: #007bed;
+            --error: #ff4757;
+            --border: #333;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+        }
+
+        /* ЭКРАН 1: ШЛЮЗ */
+        #login-screen {
+            margin-top: 15vh;
+            text-align: center;
+            background-color: var(--card-bg);
+            padding: 50px 30px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        #login-screen h2 {
+            margin-top: 0;
+            letter-spacing: 2px;
+            color: #fff;
+        }
+
+        input[type="text"] {
+            width: 80%;
+            max-width: 400px;
+            padding: 15px;
+            margin: 25px 0;
+            background: #111;
+            border: 1px solid var(--accent);
+            color: #fff;
+            font-family: monospace;
+            font-size: 16px;
+            text-align: center;
+            outline: none;
+        }
+
+        input[type="text"]:focus {
+            box-shadow: 0 0 10px rgba(0, 123, 237, 0.3);
+        }
+
+        button {
+            background-color: var(--accent);
+            color: #fff;
+            border: none;
+            padding: 15px 40px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background-color: #005bb5;
+        }
+
+        .warning {
+            color: var(--text-muted);
+            font-size: 12px;
+            margin-top: 30px;
+            border-top: 1px solid var(--border);
+            padding-top: 20px;
+        }
+
+        .error-msg {
+            color: var(--error);
+            margin-top: 15px;
+            display: none;
+            font-size: 14px;
+        }
+
+        /* ЭКРАН 2: ПРОФИЛЬ */
+        #profile-screen {
+            display: none;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .btn-back {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            margin-bottom: 20px;
+            padding: 10px 20px;
+        }
+        
+        .btn-back:hover {
+            background: var(--border);
+        }
+
+        #render-area {
+            background-color: var(--card-bg);
+            padding: 30px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            line-height: 1.6;
+            font-size: 16px;
+            white-space: pre-wrap; /* Сохраняет абзацы и переносы строк */
+        }
+
+        /* Выделение маркеров системы */
+        .act-header {
+            color: var(--accent);
+            font-weight: bold;
+            font-size: 18px;
+            margin-top: 25px;
+            margin-bottom: 10px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    
+    <!-- ЭКРАН 1: АВТОРИЗАЦИЯ -->
+    <div id="login-screen">
+        <h2>СИСТЕМНЫЙ АУДИТ ПЕРСОНАЛА</h2>
+        <p style="color: var(--text-muted);">Введите индивидуальный токен-ключ для расшифровки матрицы</p>
+        <input type="text" id="token-input" placeholder="Формат: Фамилия_И_Должность-XyZ123">
+        <br>
+        <button onclick="attemptDecryption()">ДЕКОДИРОВАТЬ</button>
+        <div id="error-message" class="error-msg">Ошибка: Токен не распознан или поврежден.</div>
+        <p class="warning">ВНИМАНИЕ: Данные предоставляются по протоколу Zero-Knowledge. <br>Передача токена третьим лицам является нарушением информационной безопасности.</p>
+    </div>
+
+    <!-- ЭКРАН 2: РЕНДЕР ПРОФИЛЯ -->
+    <div id="profile-screen">
+        <button class="btn-back" onclick="location.reload()">← ЗАВЕРШИТЬ СЕАНС</button>
+        <div id="render-area"></div>
+    </div>
+
+</div>
+
+<script>
+    // 1. Асинхронная загрузка зашифрованной БД при открытии страницы
+    window.onload = function() {
+        fetch('database.json')
+            .then(response => response.json())
+            .then(data => { window.encryptedDB = data; })
+            .catch(error => {
+                console.error("Ошибка загрузки базы:", error);
+                document.getElementById('error-message').innerText = "Ошибка соединения с матрицей данных.";
+                document.getElementById('error-message').style.display = 'block';
+            });
+    };
+
+    function showError(text) {
+        const errorDiv = document.getElementById('error-message');
+        errorDiv.innerText = text;
+        errorDiv.style.display = 'block';
+    }
+
+    function attemptDecryption() {
+        const token = document.getElementById('token-input').value.trim();
+        document.getElementById('error-message').style.display = 'none';
+
+        if(!window.encryptedDB) {
+            showError("База данных еще загружается. Подождите пару секунд.");
+            return;
+        }
+
+        // Парсинг токена. Формат: User_ID-Suffix
+        const lastDash = token.lastIndexOf('-');
+        if (lastDash === -1) {
+            showError("Нарушен синтаксис токена.");
+            return;
+        }
+
+        const userId = token.substring(0, lastDash);
+        const encryptedBase64 = window.encryptedDB[userId];
+
+        if (!encryptedBase64) {
+            showError("Субъект не найден в системе. Проверьте правильность ввода.");
+            return;
+        }
+
+        // 2. Криптографическая расшифровка (алгоритм идентичен Python)
+        try {
+            // Восстанавливаем ключи из токена
+            const key = CryptoJS.SHA256(token);
+            const iv = CryptoJS.MD5(token);
+
+            // Расшифровываем
+            const decrypted = CryptoJS.AES.decrypt(encryptedBase64, key, {
+                iv: iv,
+                mode: CryptoJS.mode.CBC,
+                padding: CryptoJS.pad.Pkcs7
+            });
+            
+            const rawText = decrypted.toString(CryptoJS.enc.Utf8);
+            
+            if (!rawText) throw new Error("Bad key");
+
+            renderProfile(rawText);
+        } catch (e) {
+            showError("В доступе отказано. Ключ дешифровки невалиден.");
+        }
+    }
+
+    function renderProfile(text) {
+        // Простейшее визуальное форматирование (окрашиваем заголовки Актов)
+        let formattedText = text.replace(/▍(.*)/g, '<div class="act-header">▍ $1</div>');
+        
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('profile-screen').style.display = 'block';
+        document.getElementById('render-area').innerHTML = formattedText;
+    }
+</script>
+
+</body>
+</html>
