@@ -36,7 +36,7 @@
             width: 100%;
         }
 
-        /* АБСОЛЮТНАЯ ЗАЩИТА ОТ ОБРЕЗКИ ТЕКСТА (БЕЗ МНОГОТОЧИЙ) */
+        /* Защита от обрезки текста */
         * {
             white-space: normal !important;
             word-wrap: break-word !important;
@@ -74,7 +74,6 @@
             text-align: center;
             outline: none;
             transition: 0.3s;
-            /* Для поля ввода отменяем перенос, чтобы токен был одной строкой */
             white-space: nowrap !important; 
         }
 
@@ -133,7 +132,6 @@
             color: #fff;
         }
 
-        /* СЕТКА ДАШБОРДА */
         .dashboard-header {
             background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
             padding: 30px;
@@ -241,6 +239,12 @@
         .risk-card .card-title::before { background-color: var(--accent-red); }
         .risk-text { color: #fca5a5; font-weight: 500; line-height: 1.6; font-size: 15px;}
 
+        /* КАРТОЧКА ПРОТОКОЛА ВЗЛОМА */
+        .protocol-card {
+            border-left: 4px solid var(--accent-green) !important;
+        }
+        .protocol-card .card-title::before { background-color: var(--accent-green); }
+
         .tech-badge {
             display: inline-block;
             background-color: #1e293b;
@@ -258,23 +262,21 @@
 
 <div class="container">
     
-    <!-- ЭКРАН Авторизации -->
     <div id="login-screen">
         <h2>СИСТЕМНЫЙ АУДИТ ПЕРСОНАЛА</h2>
         <p style="color: var(--text-muted); font-size: 15px;">Введите токен-ключ сотрудника для безопасного развертывания аналитической матрицы</p>
-        <input type="text" id="token-input" placeholder="Имя_Фамилия-Код">
+        <input type="text" id="token-input" placeholder="Вставьте токен из CSV файла">
         <br>
         <button onclick="attemptDecryption()">Открыть дашборд</button>
         <div id="error-message" class="error-msg"></div>
     </div>
 
-    <!-- ЭКРАН Результатов -->
     <div id="profile-screen">
         <button class="btn-back" onclick="location.reload()">← Закрыть профиль</button>
         
         <div class="dashboard-header">
             <h1 id="user-name">Загрузка...</h1>
-            <div id="user-role" class="role">Должность</div>
+            <div id="user-role" class="role">Загрузка...</div>
         </div>
 
         <div class="grid-2">
@@ -291,13 +293,19 @@
             </div>
         </div>
 
-        <!-- Блок 3: Критический парадокс (Яркое пятно внимания) -->
+        <!-- Блок 3: Критический парадокс (АКТ 2) -->
         <div class="card risk-card" style="margin-bottom: 20px;">
             <div class="card-title" style="color: var(--accent-red);">Критический узел / Куда уходит батарейка</div>
             <div id="block-paradox" class="risk-text"></div>
         </div>
 
-        <!-- Блок 4: Технический допуск -->
+        <!-- Блок 4: Протокол взлома системы (АКТ 3) -->
+        <div id="card-protocol" class="card protocol-card" style="margin-bottom: 20px; display: none;">
+            <div class="card-title" style="color: var(--accent-green);">Протокол взлома системы</div>
+            <div id="block-protocol" style="line-height: 1.6; font-size: 15px; color: #cbd5e1;"></div>
+        </div>
+
+        <!-- Блок 5: Технический допуск -->
         <div class="card">
             <div class="card-title">Верификация данных</div>
             <div id="block-tech"></div>
@@ -375,41 +383,45 @@
     }
 
     function buildDashboard(fullId, text) {
+        // Парсим имя
         let nameParts = fullId.split('_');
         if(nameParts.length < 2) nameParts = fullId.split(' ');
-        
         let name = nameParts[0] + " " + (nameParts[1] || "");
-        let role = nameParts.slice(2).join(' ') || "Специалист";
-
         document.getElementById('user-name').innerText = name.toUpperCase();
+
+        // УМНЫЙ ПАРСИНГ: Ищем должность сразу после имени профиля, до первого символа ▍
+        let roleMatch = text.match(/ПРОФИЛЬ:[^\n]*\n\s*([^▍\n]+)/);
+        let role = roleMatch && roleMatch[1].trim() !== "" ? roleMatch[1].trim() : "Специалист";
         document.getElementById('user-role').innerText = role;
 
-        let cleanText = text.replace(/ПРОФИЛЬ:[^\n]*/, '');
-        
-        let techMatch = cleanText.match(/▍ТЕХНИЧЕСКИЙ ДОПУСК([\s\S]*?)(?=▍|$)/);
+        // Технический допуск
+        let techMatch = text.match(/▍ТЕХНИЧЕСКИЙ ДОПУСК([\s\S]*?)(?=▍|$)/);
         let techHtml = "";
         if(techMatch) {
             techHtml = techMatch[1].trim().split('\n').filter(l=>l.trim()!=='').map(line => `<div class="tech-badge">${line}</div>`).join(' ');
         }
         document.getElementById('block-tech').innerHTML = techHtml || "<div class='tech-badge'>Данные верифицированы штатно.</div>";
 
-        let legendMatch = cleanText.match(/▍АКТ 1\.[^\n]*([\s\S]*?)(?=▍|$)/);
+        // АКТ 1 (Легенда)
+        let legendMatch = text.match(/▍АКТ 1[^\n]*([\s\S]*?)(?=▍|$)/);
         if(legendMatch) {
             let paragraphs = legendMatch[1].trim().split('\n').filter(p => p.trim() !== '').map(p => `<p>${p}</p>`).join('');
             document.getElementById('block-legend').innerHTML = paragraphs;
         }
 
-        let mapMatch = cleanText.match(/▍КАРТА ВНУТРЕННЕГО НАТЯЖЕНИЯ([\s\S]*?)(?=▍|$)/);
+        // КАРТА НАТЯЖЕНИЯ (Теперь игнорирует спецсимволы и работает железобетонно)
+        let mapMatch = text.match(/▍КАРТА ВНУТРЕННЕГО НАТЯЖЕНИЯ([\s\S]*?)(?=▍|$)/);
         let metricsHtml = "";
         if(mapMatch) {
             let lines = mapMatch[1].trim().split('\n');
             lines.forEach(line => {
-                let m = line.match(/\[(.*?)\]\s*([0-9\s#%=]*%)\s*\((.*?)\)/);
+                // Ищет [Название], игнорирует любые графические блоки (███), находит %, игнорирует всё до (Описания)
+                let m = line.match(/\[(.*?)\][^\d]*(\d+%)[^\(]*\((.*?)\)/);
                 if(m) {
-                    let label = m[1];
-                    let percentStr = m[2].replace(/[^0-9%]/g, '');
+                    let label = m[1].trim();
+                    let percentStr = m[2];
                     let percentVal = parseInt(percentStr);
-                    let desc = m[3];
+                    let desc = m[3].trim();
                     
                     let colorClass = "var(--accent-blue)";
                     if(percentVal >= 80) colorClass = "var(--accent-red)";
@@ -431,14 +443,26 @@
                 }
             });
         }
-        document.getElementById('block-metrics').innerHTML = metricsHtml || "Показатели стабильны.";
+        document.getElementById('block-metrics').innerHTML = metricsHtml || "Данные матрицы отсутствуют.";
 
-        let batteryMatch = cleanText.match(/▍АКТ 2\.[^\n]*([\s\S]*?)$/);
+        // АКТ 2 (Критический узел) - Теперь строго останавливается перед Актом 3
+        let batteryMatch = text.match(/▍АКТ 2[^\n]*([\s\S]*?)(?=▍|$)/);
         if(batteryMatch) {
             let pText = batteryMatch[1].trim().replace(/\n/g, '<br><br>');
             document.getElementById('block-paradox').innerHTML = pText;
         }
 
+        // АКТ 3 (Протокол взлома) - Выведен в отдельную зеленую карточку
+        let protocolMatch = text.match(/▍АКТ 3[^\n]*([\s\S]*?)(?=▍|$)/);
+        if(protocolMatch) {
+            let prText = protocolMatch[1].trim().replace(/\n/g, '<br><br>');
+            document.getElementById('block-protocol').innerHTML = prText;
+            document.getElementById('card-protocol').style.display = 'block';
+        } else {
+            document.getElementById('card-protocol').style.display = 'none';
+        }
+
+        // Переключение экранов
         document.getElementById('login-screen').style.display = 'none';
         document.getElementById('profile-screen').style.display = 'block';
     }
